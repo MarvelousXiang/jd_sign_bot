@@ -67,8 +67,14 @@ async function start() {
     }
     const lines = fs.readFileSync(path).toString().split(EOL).filter(v => v)
     let notify = ""
-    let first = lines.findIndex(v => v.includes("【签到号一】"))
-    let second = lines.findIndex(v => v.includes("【签到号二】"))
+
+    let first = 0
+	  let second
+    if (typeof DualKey !== 'undefined') {
+      first = lines.findIndex(v => v.includes("【签到号一】"))
+      second = lines.findIndex(v => v.includes("【签到号二】"))
+    }
+
     const findLine = (key, start) => lines.slice(start, start + 10).find(v => v.includes(key))
     if (first === -1) {
       notify = "号一失败"
@@ -76,9 +82,10 @@ async function start() {
       await sendNotify(notify.split(' ').join('_'), lines.join(EOL.repeat(2)))
       return
     }
-    if (lines[first + 2].includes("【账号总计】")) {
+    if (typeof DualKey !== 'undefined') first += 2
+    if (lines[first].includes("【账号总计】")) {
       // failed
-      const totalCount = parseInt(lines[first + 2].match(/【账号总计】:  ([0-9]*)京豆/)?.[1])
+      const totalCount = parseInt(lines[first].match(/【账号总计】:  ([0-9]*)京豆/)?.[1])
       notify += `号一失败 共${totalCount}`
     } else {
       // succeed
